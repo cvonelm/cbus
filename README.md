@@ -22,7 +22,7 @@ Cleaning:
 The documentation is located in the doc folder, API.md covers the reference Implementation,
 cbus.md the protocol
 
-Examples are located in libcbus/examples
+Examples are located in libcbus/test
 
 ##TODO
 
