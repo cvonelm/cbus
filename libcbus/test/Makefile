@@ -15,4 +15,7 @@ emit:
 sub:
 	cc -o cbus_sub cbus_sub.c -g3 -lcbus
 	./cbus_sub ${HOME}/.cbus
+clean:
+	rm -r cbus_sub cbus_call cbus_test cbus_emit cbus_response
+.PHONY: clean
   

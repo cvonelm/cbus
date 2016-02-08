@@ -8,10 +8,14 @@ DBUS-like interprocess communication.
 cbusd and libcbus need a POSIX environment to work.
 
 Compiling and installing:
+```sh
     make 
     make install
-Cleaning
+```
+Cleaning:
+```sh
     make clean
+```
 
 ##Documentation
 

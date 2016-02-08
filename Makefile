@@ -12,4 +12,5 @@ clean:
 	make -C cbusd clean
 	make -C libcbus clean
 	make -C doc clean
+	make -C libcbus/test clean
 .PHONY: all cbusd libcbus doc install clean
