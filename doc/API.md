@@ -49,40 +49,21 @@ You may only access the \*\_value which matches the data type
 
 #The API
 
-##Parsing messages
-
-###struct CBUS\_msg \*cbus\_parse\_msg(char \*msg);
-
-**Arguments**
-- char \*msg | the message to be parsed
-
-**Returns**
-- a CBUS\_msg struct representing the message, or NULL on failure
-
-*Note:* Do not free msg, it will be freed on calling cbus\_free\_msg
-
-###void cbus\_free\_msg(struct CBUS\_msg \*msg);
-
-Frees a message
-
-**Arguments**
-- struct CBUS\_msg \*msg | will be freed
-
 ##Helpers
 
-###int fn\_call\_mathches(struct CBUS\_msg \*msg, char \*to, char \*fn\_name, char \*args);
+###int fn\_call\_matches(struct CBUS\_msg \*msg, char \*to, char \*fn\_name, char \*args);
 Checks wether the arguments given to this function are equal to the
 corresponding fields inside the "msg" structure.
 
 Arguments may be "", when they aren't checked for.
 
-###int fn\_return\_mathches(struct CBUS\_msg \*msg, char \*from, char \*fn\_name, char \*args);
+###int fn\_return\_matches(struct CBUS\_msg \*msg, char \*from, char \*fn\_name, char \*args);
 Checks wether the arguments given to this function are equal to the
 corresponding fields inside the "msg" structure.
 
 Arguments may be "", when they aren't checked for.
 
-###int signal\_mathches(struct CBUS\_msg \*msg, char \*from, char \*sig\_name, char \*args);
+###int signal\_matches(struct CBUS\_msg \*msg, char \*from, char \*sig\_name, char \*args);
 Checks wether the arguments given to this function are equal to the
 corresponding fields inside the "msg" structure.
 
