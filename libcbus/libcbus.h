@@ -46,6 +46,8 @@ struct CBUS_msg
 
     char *msg;
     struct CBUS_msg *next;
+    int err;
+    char *errstr;
 
 };
 struct CBUS_arg
@@ -110,6 +112,7 @@ int fn_call_matches(struct CBUS_msg *msg, char *to, char *fn_name, char *args);
 int fn_return_matches(struct CBUS_msg *msg, char *from, char *fn_name, char *args);
 int signal_matches(struct CBUS_msg *msg, char *from, char *sig_name, char *args);
 void cbus_print_msg(struct CBUS_msg *msg);
+char *cbus_errstr(int err);
 
 
 struct CBUS_conn *cbus_connect(char *address, int *err); 

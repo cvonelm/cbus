@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     struct CBUS_conn *conn = cbus_connect("/home/cve/.cbus", &err);
     if(err != 0)
     {
-        fprintf(stderr, "Couldn't connect: %d\n", err);
+        fprintf(stderr, "Couldn't connect: %s\n", cbus_errstr(err));
         exit(1);
     }
     /*..and disconnect */

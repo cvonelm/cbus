@@ -21,7 +21,7 @@ int main(int argc, char **argv)
     struct CBUS_conn *conn = cbus_connect(argv[1], &err);
     if(conn == NULL)
     {
-        fprintf(stderr, "Couldn't connect: %d\n", err);
+        fprintf(stderr, "Couldn't connect: %s\n", cbus_errstr(err));
         exit(1);
     }
     /*Call the function*/
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     struct CBUS_msg *msg = cbus_read(conn, &err, 0);
     if(err != 0)
     {
-        fprintf(stderr, "Error occured !\n");
+        fprintf(stderr, "Couldn't read:%s\n". cbus_errstr(err));
         return -1;
     }
     /* Print it*/

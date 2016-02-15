@@ -7,15 +7,12 @@ int main(int argc, char **argv)
     struct CBUS_conn *conn = cbus_connect("/home/cve/.cbus", &err);
     if(conn == NULL)
     {
-        fprintf(stderr, "Couldn't connect: %d\n", err);
+        fprintf(stderr, "Couldn't connect: %s\n", cbus_errstr(err));
     }
-    if(cbus_request_name(conn, "/test2") < 0)
-    {
-        fprintf(stderr, "CBUS Error\n");
-    }
+    err = cbus_request_name(conn, "/test2");
     if(err != 0)
     {
-        fprintf(stderr, "CBUS Error: %d\n", err);
+        fprintf(stderr, "Couldn't request name: %s\n", cbus_errstr(err));
         exit(1);
     }
     while(1)
@@ -23,7 +20,7 @@ int main(int argc, char **argv)
         struct CBUS_msg *msg = cbus_read(conn, &err, 0);
         if(err != 0)
         {
-            fprintf(stderr, "CBUS Error: %d\n", err);
+            fprintf(stderr, "Couldn't read: %s\n", cbus_errstr(err));
             return -1;
         }
         cbus_print_msg(msg);

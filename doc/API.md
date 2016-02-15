@@ -34,6 +34,8 @@ connection
 - char \*arg\_str | string describing the arguments
 - struct CBUS\_arg \*args | the arguments
 - char \*msg | the message as is
+- char \*errstr | shorthand to get the error string when the message is an error
+- int err | shorthand for the error number
 
 Refer to the protocol definition for more information on this
 data structure
@@ -75,6 +77,9 @@ Debug call to print messages
 
 **Arguments**
 - struct CBUS\_msg \*msg | the message to be printed
+
+###char \*cbus\_errstr(int err)
+Returns a human-readable description of an error number
 
 ##Starting and stopping the connection
 
@@ -214,3 +219,12 @@ Request a (new) name
 - CBUS\_ERR\_CONNECTION | the connection had an error
 - CBUS\_ERR\_DISCONNECT | we were disconnected
 - CBUS\_ERR\_CONFLICT | this name conflicts with another
+
+#Enumerations
+##CBUS\_msg\_type
+the message types:
+
+- CBUS\_TYPE\_FN\_CALL
+- CBUS\_TYPE\_FN\_ERR
+- CBUS\_TYPE\_FN\_RETURN
+- CBUS\_TYPE\_SIGNAL

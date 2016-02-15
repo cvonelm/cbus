@@ -159,5 +159,18 @@ struct CBUS_msg *cbus_parse_msg(char *msg)
             }
         }
     }
+    if(result->type == CBUS_TYPE_FN_ERR)
+    {
+        if(strcmp(result->arg_str, "is") == 0)
+        {
+            result->err = result->args->int_value;
+            result->errstr = result->args->next->str_value;
+        }
+        else
+        {
+            free(result);
+            return NULL;
+        }
+    }
     return result;
 }

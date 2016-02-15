@@ -164,3 +164,39 @@ int cbus_check_name(char *name)
     }
     return 1;
 }
+
+char *cbus_errstr(int err)
+{
+    if(err == CBUS_ERR_CONNECTION)
+    {
+        return "The connection to the cbus daemon failed";
+    }
+    else if(err == CBUS_ERR_DISCONNECT)
+    {
+        return "The connection to the cbus daemon was closed";
+    }
+    else if(err == CBUS_ERR_NO_AUTH)
+    {
+        return "Permission denied";
+    }
+    else if(err == CBUS_ERR_NOT_FOUND)
+    {
+        return "The requested name was not found";
+    }
+    else if(err == CBUS_ERR_CONFLICT)
+    {
+        return "The requested address already exists";
+    }
+    else if(err == CBUS_ERR_NOMEM)
+    {
+        return "Out of memory";
+    }
+    else if(err == CBUS_ERR_UNKNOWN_FN)
+    {
+        return "This function is not defined";
+    }
+    else
+    {
+        return "Unknown Error";
+    }
+}

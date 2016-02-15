@@ -30,6 +30,8 @@ Examples are located in libcbus/test
 
 ##Changelog
 - 0.1 "Daemon Days" : Initial release
+- 0.1.1 "Daemon Days" : added shorthands for err, errstr, and cbus\_errstr()
+
 
 ##License
 

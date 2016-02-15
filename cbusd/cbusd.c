@@ -27,7 +27,7 @@ char *socket_path;
 char *rules_path;
 char *auth_path;
 char *base_dir;
-char *VERSION = "0.1 Daemon Days";
+char *VERSION = "0.1.1 Daemon Days";
 struct CBUS_conn *start, *it;
 fd_set master;
 int perm_mode = 0;
@@ -62,11 +62,7 @@ int main(int argc, char **argv)
     memcpy(local.sun_path, socket_path, strlen(socket_path) + 1);
 
     /*There may be some dead socket laying around from a previous execution */
-    if(unlink(local.sun_path) == -1)
-    {
-        fprintf(stderr, "Couldn't unlink socketL %s\n",
-                strerror(errno));
-    }
+    unlink(local.sun_path);
 
     size_t len = strlen(local.sun_path) + sizeof(local.sun_family);
     if(bind(own_fd, (struct sockaddr *)&local, len) == -1)
@@ -261,8 +257,6 @@ int cbusd_gen_auth(char *source, char *dest)
             memcpy(new_dest + strlen(dest) + 1,
                     entry->d_name, strlen(entry->d_name) + 1);
 
-            fprintf(stderr, "new_source:%s\n", new_source);
-            fprintf(stderr, "new_dest:%s\n", new_dest);
             if (entry->d_type == DT_DIR) {
                 struct stat st;
 
@@ -368,7 +362,7 @@ int cbusd_process(struct CBUS_conn *sender, struct CBUS_msg *msg)
         if(cbus_check_auth(sender, msg) == 0)
         {
             return cbus_send_err(sender, msg, CBUS_ERR_NO_AUTH, 
-                    "No permission to call the requested function");
+                    "Permission denied");
         }
     }
     if(*msg->token != 0)
