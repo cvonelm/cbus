@@ -102,7 +102,6 @@ int signal_matches(struct CBUS_msg *msg, char *from,  char *sig_name, char *args
 
 void cbus_print_msg(struct CBUS_msg *msg)
 {
-
     fprintf(stderr, "msg->length=%d\n", msg->length);
     if(msg->type == CBUS_TYPE_FN_CALL)
     {

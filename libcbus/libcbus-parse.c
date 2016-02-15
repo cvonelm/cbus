@@ -19,12 +19,6 @@ struct CBUS_msg *cbus_parse_msg(char *msg)
 
     result->length = *(uint32_t *)msg;
     char *msg_end = msg + result->length; 
-    /* this is the absolute minimum, assuming all char *fields are just one char of NULL */
-    if(result->length < sizeof(uint32_t) * 3 + 5)
-    {
-        free(result);
-        return NULL;
-    }
     msg_it += sizeof(uint32_t);
     
     /*TYPE*/
@@ -91,12 +85,12 @@ struct CBUS_msg *cbus_parse_msg(char *msg)
             {
                 if(result->args == NULL)
                 {
-                    result->args = malloc(sizeof(struct CBUS_arg));
+                    result->args = calloc(1,sizeof(struct CBUS_arg));
                     arg_it = result->args;
                 }
                 else
                 {
-                    arg_it->next = malloc(sizeof(struct CBUS_arg));
+                    arg_it->next = calloc(1,sizeof(struct CBUS_arg));
                     arg_it = arg_it->next;
                 }
                 arg_it->int_value = *(uint32_t *)msg_it;
@@ -115,12 +109,12 @@ struct CBUS_msg *cbus_parse_msg(char *msg)
             {
                 if(result->args == NULL)
                 {
-                    result->args = malloc(sizeof(struct CBUS_arg));
+                    result->args = calloc(1,sizeof(struct CBUS_arg));
                     arg_it = result->args;
                 }
                 else
                 {
-                    arg_it->next = malloc(sizeof(struct CBUS_arg));
+                    arg_it->next = calloc(1,sizeof(struct CBUS_arg));
                     arg_it = arg_it->next;
                 }
                 arg_it->double_value = *(double *)msg_it;
@@ -139,12 +133,12 @@ struct CBUS_msg *cbus_parse_msg(char *msg)
             {
                 if(result->args == NULL)
                 {
-                    result->args = malloc(sizeof(struct CBUS_arg));
+                    result->args = calloc(1,sizeof(struct CBUS_arg));
                     arg_it = result->args;
                 }
                 else
                 {
-                    arg_it->next = malloc(sizeof(struct CBUS_arg));
+                    arg_it->next = calloc(1,sizeof(struct CBUS_arg));
                     arg_it = arg_it->next;
                 }
                 arg_it->str_value = msg_it;
