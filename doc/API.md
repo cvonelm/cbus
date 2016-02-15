@@ -87,7 +87,7 @@ Returns a human-readable description of an error number
 
 **Arguments**
 - char \*address | the base directory of the CBUS instance
-- int \*err | An pointer to an integer filled with an error code
+- int \*err |  pointer to an integer filled with an error code
 
 **Returns**
 
@@ -100,6 +100,21 @@ NULL on failure
 ###void cbus\_disconnect(struct CBUS\_conn \*conn);
 
 Disconnects the connection "conn" and frees the corresponding structure
+##Receiving messages
+
+###struct CBUS\_msg \*cbus\_read(struct CBUS\_conn \*conn, int \*err, int flags);
+
+**Arguments**
+- struct CBUS\_conn \*conn | the connection to be read on
+- int \*err | pointer to an integer filled with an error code
+- int flags | should be always 0
+
+**Returns**
+
+The read message
+**Errors**
+
+- CBUS\_ERR\_CONNECTION | the connection failed
 
 ##Calling functions
 
