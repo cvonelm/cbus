@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     struct CBUS_msg *msg = cbus_read(conn, &err, 0);
     if(err != 0)
     {
-        fprintf(stderr, "Couldn't read:%s\n". cbus_errstr(err));
+        fprintf(stderr, "Couldn't read:%s\n", cbus_errstr(err));
         return -1;
     }
     /* Print it*/

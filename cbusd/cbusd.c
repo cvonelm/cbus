@@ -5,6 +5,7 @@
  *  This file is open source, see the LICENSE file in the top directory of this repository
  *  for more information
  */
+
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <stdio.h>
@@ -19,6 +20,8 @@
 #include <dirent.h>
 #include <time.h>
 
+#include <ftw.h>
+
 #include <ctype.h>
 
 #include "cbusd.h"
@@ -30,9 +33,65 @@ char *base_dir;
 char *VERSION = "0.1.1 Daemon Days";
 struct CBUS_conn *start, *it;
 fd_set master;
-int perm_mode = 0;
 int verbose = 0;
 int drop = 0;
+int cbusd_clear_dir(char *path);
+int cbusd_clear_dir(char *path)
+{
+    printf("%s\n", path);
+    DIR *dir;
+    struct dirent *entry;
+
+    if (!(dir = opendir(path)))
+    {
+        return CBUS_ERR_OTHER;
+    }
+    if (!(entry = readdir(dir)))
+    {
+        return CBUS_ERR_OTHER;
+    }
+
+    do 
+    {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+        {
+            continue;
+        }
+        
+        if(entry->d_type == DT_DIR || entry->d_type == DT_REG)
+        {
+            char *new_path = malloc(strlen(path) 
+                    + strlen(entry->d_name) + 2);
+            if(new_path == NULL)
+            {
+                return CBUS_ERR_NOMEM;
+            }
+            memcpy(new_path, path, strlen(path));
+            new_path[strlen(path)] = '/';
+            memcpy(new_path + strlen(path) + 1,
+                    entry->d_name, strlen(entry->d_name) + 1);
+            printf("%s\n", path); 
+            if (entry->d_type == DT_DIR) 
+            {
+                cbusd_clear_dir(new_path);
+                if(remove(new_path) == -1)
+                {
+                    return CBUS_ERR_OTHER;
+                }
+                
+            }
+            else if(entry->d_type == DT_REG)
+            {
+                if(remove(new_path) == -1)
+                {
+                    return CBUS_ERR_OTHER;
+                }
+
+            }
+        }
+    } while (entry = readdir(dir));
+    closedir(dir);
+}
 int main(int argc, char **argv)
 {
     srand(time(NULL));
@@ -40,10 +99,10 @@ int main(int argc, char **argv)
     signal(SIGPIPE, SIG_IGN);
 
     parse_args(argc, argv);
-    if(perm_mode == 1)
-    {
-        cbusd_gen_auth(rules_path, auth_path);
-    }
+    cbusd_clear_dir(auth_path);
+    mkdir(auth_path, 0777);
+    cbusd_gen_auth(rules_path, auth_path);
+    
     int own_fd;
     struct sockaddr_un local, remote;
     if((own_fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
@@ -212,6 +271,7 @@ void cbusd_rand_str(char *str, int len)
     }
 
 }
+
 int cbusd_gen_auth(char *source, char *dest)
 {
     DIR *dir;
@@ -268,9 +328,16 @@ int cbusd_gen_auth(char *source, char *dest)
             }
             else if(entry->d_type == DT_REG)
             {
-                FILE *f = fopen(new_dest, "w+");
+                FILE *f = fopen(new_dest, "w");
+                if(f == NULL)
+                {
+                    perror("Couldn't create file: ");
+                    exit(1);
+                }
+                perror("");
                 char token[32];
                 cbusd_rand_str(token, 32);
+                printf("%p\n", f);
                 fwrite(token, 1, 32, f);
                 struct stat st;
                 stat(new_source, &st);
@@ -282,7 +349,6 @@ int cbusd_gen_auth(char *source, char *dest)
     } while (entry = readdir(dir));
     closedir(dir);
 }
-
 void cbusd_disconnect(struct CBUS_conn *conn)
 {
     if(verbose == 1)
@@ -357,14 +423,13 @@ int cbusd_process(struct CBUS_conn *sender, struct CBUS_msg *msg)
 
 
     }
-    if(perm_mode == 1)
+
+    if(cbus_check_auth(sender, msg) == 0)
     {
-        if(cbus_check_auth(sender, msg) == 0)
-        {
-            return cbus_send_err(sender, msg, CBUS_ERR_NO_AUTH, 
-                    "Permission denied");
-        }
+        return cbus_send_err(sender, msg, CBUS_ERR_NO_AUTH, 
+                "Permission denied");
     }
+
     if(*msg->token != 0)
     {
         *msg->token = 0;
@@ -502,10 +567,6 @@ void parse_args(int argc,char ** argv)
                 exit(1);
             }
         }
-        else if(strcmp(argv[i], "-p") == 0)
-        {
-            perm_mode = 1;
-        }
         else if(strcmp(argv[i], "-h") == 0)
         {
             print_usage();
@@ -534,7 +595,6 @@ void print_usage()
     fprintf(stderr, "Usage: cbusd -b [CBUS base dir]\n"
             "Optional Arguments:\n"
             "\t-h show this help and exit\n"
-            "\t-p Activates permission mode\n"
             "\t-v show debugging information\n"
             "\t-d drop all packages to stderr\n"
             );
