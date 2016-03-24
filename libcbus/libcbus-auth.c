@@ -10,7 +10,7 @@
 #include <string.h>
 #include <errno.h>
 
-char *cbus_get_auth(struct CBUS_conn *conn, char *address, char *fn_name)
+char *cbus_get_auth( CBUS_conn *conn, char *address, char *fn_name)
 {
     char *rule_path = calloc(1, strlen(conn->path) +
             strlen("/auth") +
@@ -18,7 +18,7 @@ char *cbus_get_auth(struct CBUS_conn *conn, char *address, char *fn_name)
             strlen(fn_name) +
             1);
     char *rule_it = rule_path;
-    
+
     memcpy(rule_it, conn->path, strlen(conn->path));
     rule_it += strlen(conn->path);
     memcpy(rule_it, "/auth", strlen("/auth"));
@@ -49,7 +49,7 @@ char *cbus_get_auth(struct CBUS_conn *conn, char *address, char *fn_name)
     return result;
 
 }
-int cbus_check_auth(struct CBUS_conn *conn, struct CBUS_msg *msg)
+int cbus_check_auth( CBUS_conn *conn,  CBUS_msg *msg)
 {
     if(msg->type == CBUS_TYPE_FN_ERR || msg->type == CBUS_TYPE_FN_RETURN)
     {

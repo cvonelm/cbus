@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 
-int fn_call_matches(struct CBUS_msg *msg,char *to, char *fn_name, char *args)
+int fn_call_matches( CBUS_msg *msg,char *to, char *fn_name, char *args)
 {
     if(msg->type != CBUS_TYPE_FN_CALL)
     {
@@ -38,7 +38,7 @@ int fn_call_matches(struct CBUS_msg *msg,char *to, char *fn_name, char *args)
     }
     return 1;
 }
-int fn_return_matches(struct CBUS_msg *msg,char *from, char *fn_name, char *args)
+int fn_return_matches( CBUS_msg *msg,char *from, char *fn_name, char *args)
 {
     if(msg->type != CBUS_TYPE_FN_RETURN)
     {
@@ -68,7 +68,7 @@ int fn_return_matches(struct CBUS_msg *msg,char *from, char *fn_name, char *args
     }
     return 1;
 }
-int signal_matches(struct CBUS_msg *msg, char *from,  char *sig_name, char *args)
+int signal_matches( CBUS_msg *msg, char *from,  char *sig_name, char *args)
 {
     if(msg->type != CBUS_TYPE_SIGNAL)
     {
@@ -100,7 +100,7 @@ int signal_matches(struct CBUS_msg *msg, char *from,  char *sig_name, char *args
     return 1;
 }
 
-void cbus_print_msg(struct CBUS_msg *msg)
+void cbus_print_msg( CBUS_msg *msg)
 {
     fprintf(stderr, "msg->length=%d\n", msg->length);
     if(msg->type == CBUS_TYPE_FN_CALL)
@@ -133,7 +133,7 @@ void cbus_print_msg(struct CBUS_msg *msg)
     else
     {
         fprintf(stderr, "ARGS(\"%s\"):\n", msg->arg_str);
-        struct CBUS_arg *arg = msg->args;
+         CBUS_arg *arg = msg->args;
         for(;arg != NULL;arg = arg->next)
         {
             if(arg->type == CBUS_TYPE_STRING)

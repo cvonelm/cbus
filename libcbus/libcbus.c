@@ -18,10 +18,10 @@
 #include <stdio.h>
 #include <signal.h>
 
-int cbus_request_name(struct CBUS_conn *conn, char *name)
+int cbus_request_name( CBUS_conn *conn, char *name)
 {
     int err;
-    struct CBUS_msg *msg = cbus_response(conn,&err, "/_daemon", "/request/name", "s", name);
+     CBUS_msg *msg = cbus_response(conn,&err, "/_daemon", "/request/name", "s", name);
 
     if(err)
     {
@@ -36,11 +36,11 @@ int cbus_request_name(struct CBUS_conn *conn, char *name)
     cbus_free_msg(msg);
     return 0;
 }
-struct CBUS_conn *cbus_connect(char *address, int *err)
+ CBUS_conn *cbus_connect(char *address, int *err)
 {
     struct sockaddr_un remote;
     signal(SIGPIPE, SIG_IGN);
-    struct CBUS_conn *conn = calloc(1, sizeof(struct CBUS_conn));
+     CBUS_conn *conn = calloc(1, sizeof( CBUS_conn));
     conn->path = address;
     if((conn->fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
     {
@@ -58,7 +58,7 @@ struct CBUS_conn *cbus_connect(char *address, int *err)
         *err = CBUS_ERR_CONNECTION;
         return NULL;
     }
-    struct CBUS_msg *msg = cbus_read(conn, err ,0);
+     CBUS_msg *msg = cbus_read(conn, err ,0);
     if(fn_return_matches(msg, "/_daemon", "/name", "s"))
     {
         conn->address = msg->args->str_value;
@@ -70,7 +70,7 @@ struct CBUS_conn *cbus_connect(char *address, int *err)
     }
     return conn;
 }
-int cbus_answer(struct CBUS_conn *conn, struct CBUS_msg *msg, char *args, ...)
+int cbus_answer( CBUS_conn *conn,  CBUS_msg *msg, char *args, ...)
 {
     va_list a;
     va_start(a, args);
@@ -84,11 +84,11 @@ int cbus_answer(struct CBUS_conn *conn, struct CBUS_msg *msg, char *args, ...)
     free(answer_msg);
     return 0;
 }
-struct CBUS_msg *cbus_read(struct CBUS_conn *conn, int *err, int flags)
+ CBUS_msg *cbus_read( CBUS_conn *conn, int *err, int flags)
 {
     if(!(flags && CBUS_FLAG_NO_BACKLOG) && conn->backlog != NULL)
     {
-        struct CBUS_msg *result = conn->backlog;
+         CBUS_msg *result = conn->backlog;
         conn->backlog = result->next;
         return result;
     }
@@ -102,7 +102,7 @@ struct CBUS_msg *cbus_read(struct CBUS_conn *conn, int *err, int flags)
             *err = CBUS_ERR_CONNECTION;
             return NULL;
         }
-        struct CBUS_msg *msg =  cbus_get_msg(conn, err);
+         CBUS_msg *msg =  cbus_get_msg(conn, err);
         if(msg != NULL)
         {
             return msg;
@@ -110,7 +110,7 @@ struct CBUS_msg *cbus_read(struct CBUS_conn *conn, int *err, int flags)
     }
 
 }
-struct CBUS_msg *cbus_get_msg(struct CBUS_conn *conn, int *err)
+ CBUS_msg *cbus_get_msg( CBUS_conn *conn, int *err)
 {
     *err = 0;
     int read_size;
@@ -119,6 +119,7 @@ struct CBUS_msg *cbus_get_msg(struct CBUS_conn *conn, int *err)
         {
             *err = CBUS_ERR_DISCONNECT;
             return NULL;
+typedef struct CBUS_sub CBUS_sub;
         }
         if(conn->msg == NULL)
         {
@@ -138,7 +139,7 @@ struct CBUS_msg *cbus_get_msg(struct CBUS_conn *conn, int *err)
         if(read_size + conn->cur_len >= conn->wanted_len)
         {
             recv(conn->fd, conn->msg + conn->cur_len, conn->wanted_len - conn->cur_len, 0);
-            struct CBUS_msg *msg = cbus_parse_msg(conn->msg);
+             CBUS_msg *msg = cbus_parse_msg(conn->msg);
             cbus_reset_conn(conn);
             return msg;
         }
@@ -150,13 +151,13 @@ struct CBUS_msg *cbus_get_msg(struct CBUS_conn *conn, int *err)
         return NULL;
 
 }
-void cbus_reset_conn(struct CBUS_conn *conn)
+void cbus_reset_conn( CBUS_conn *conn)
 {
     conn->msg = NULL;
     conn->wanted_len = 0;
     conn->cur_len = 0;
 }
-int cbus_call(struct CBUS_conn *conn, char *address, char *fn_name, char *args, ...)
+int cbus_call( CBUS_conn *conn, char *address, char *fn_name, char *args, ...)
 {
     va_list a;
     va_start(a, args);
@@ -164,7 +165,7 @@ int cbus_call(struct CBUS_conn *conn, char *address, char *fn_name, char *args, 
     va_end(a);
     return ret;
 }
-int v_cbus_call(struct CBUS_conn *conn, char *address, char *fn_name, char *args, va_list a)
+int v_cbus_call( CBUS_conn *conn, char *address, char *fn_name, char *args, va_list a)
 {
     uint32_t serial = rand();
     char *token = cbus_get_auth(conn, address, fn_name);
@@ -183,10 +184,10 @@ int v_cbus_call(struct CBUS_conn *conn, char *address, char *fn_name, char *args
     return serial;
 }
 
-int cbus_subscribe(struct CBUS_conn *conn, char *sender, char *sig_name)
+int cbus_subscribe( CBUS_conn *conn, char *sender, char *sig_name)
 {
     int err;
-    struct CBUS_msg *msg = cbus_response(conn,
+     CBUS_msg *msg = cbus_response(conn,
             &err,
             "/_daemon",
             "/subscribe",
@@ -201,7 +202,7 @@ int cbus_subscribe(struct CBUS_conn *conn, char *sender, char *sig_name)
     }
     return 0;
 }
-int cbus_emit(struct CBUS_conn *conn, char *sig_name, char *args, ...)
+int cbus_emit( CBUS_conn *conn, char *sig_name, char *args, ...)
 {
     va_list a;
     va_start(a, args);
@@ -211,7 +212,7 @@ int cbus_emit(struct CBUS_conn *conn, char *sig_name, char *args, ...)
     {
         return CBUS_ERR_NO_AUTH;
     }
-    char *msg = cbus_construct_signal(serial,
+    char *msg = cbus_con_signal(serial,
             "",
             conn->address,
             sig_name,
@@ -229,7 +230,7 @@ int cbus_emit(struct CBUS_conn *conn, char *sig_name, char *args, ...)
     }
     return 0;
 }
-struct CBUS_msg *cbus_response(struct CBUS_conn *conn, int *err,
+ CBUS_msg *cbus_response( CBUS_conn *conn, int *err,
         char *address, char *fn_name, char *args, ...)
 {
     uint32_t serial;
@@ -239,7 +240,7 @@ struct CBUS_msg *cbus_response(struct CBUS_conn *conn, int *err,
     va_end(a);
     while(1)
     {
-        struct CBUS_msg *msg = cbus_read(conn, err, CBUS_FLAG_NO_BACKLOG);
+         CBUS_msg *msg = cbus_read(conn, err, CBUS_FLAG_NO_BACKLOG);
         if(*err != 0)
         {
             return NULL;
@@ -256,7 +257,7 @@ struct CBUS_msg *cbus_response(struct CBUS_conn *conn, int *err,
             }
             else
             {
-                struct CBUS_msg *msg_end = conn->backlog;
+                 CBUS_msg *msg_end = conn->backlog;
                 for(;msg_end->next != NULL; msg_end = msg_end->next);
                 msg_end->next = msg;
             }
@@ -265,7 +266,7 @@ struct CBUS_msg *cbus_response(struct CBUS_conn *conn, int *err,
 
 
 }
-int cbus_send_msg(struct CBUS_conn *conn, char *msg)
+int cbus_send_msg( CBUS_conn *conn, char *msg)
 {
     int err = 0;
         if((err = send(conn->fd, msg, *(uint32_t*)msg, 0)) < 0)
@@ -281,14 +282,14 @@ int cbus_send_msg(struct CBUS_conn *conn, char *msg)
         }
     return 0;
 }
-int cbus_send_err(struct CBUS_conn *conn, struct CBUS_msg *msg, int err, char *err_message)
+int cbus_send_err( CBUS_conn *conn,  CBUS_msg *msg, int err, char *err_message)
 {
     char *err_msg = cbus_construct_err(msg->serial, conn->address, msg->from, msg->fn_name, err, err_message);
     cbus_send_msg(conn, err_msg);
     free(err_msg);
     return 0;
 }
-int cbus_send_return(struct CBUS_conn *conn, struct CBUS_msg *msg, char *args, ...)
+int cbus_send_return( CBUS_conn *conn,  CBUS_msg *msg, char *args, ...)
 {
     va_list a;
     va_start(a, args);
@@ -298,12 +299,12 @@ int cbus_send_return(struct CBUS_conn *conn, struct CBUS_msg *msg, char *args, .
     free(ret_msg);
     return 0;
 }
-void cbus_disconnect(struct CBUS_conn *conn)
+void cbus_disconnect( CBUS_conn *conn)
 {
-    struct CBUS_msg *msg = conn->backlog;
+     CBUS_msg *msg = conn->backlog;
     while(msg != NULL)
     {
-        struct CBUS_msg *temp = msg->next;
+         CBUS_msg *temp = msg->next;
         cbus_free_msg(msg);
         msg = temp;
     }
@@ -311,7 +312,7 @@ void cbus_disconnect(struct CBUS_conn *conn)
     free(conn);
 }
 
-void cbus_free_msg(struct CBUS_msg *msg)
+void cbus_free_msg( CBUS_msg *msg)
 {
     free(msg->msg);
     free(msg);

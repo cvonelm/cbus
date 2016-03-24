@@ -31,7 +31,7 @@ char *rules_path;
 char *auth_path;
 char *base_dir;
 char *VERSION = "0.1.1 Daemon Days";
-struct CBUS_conn *start, *it;
+ CBUS_conn *start, *it;
 fd_set master;
 int verbose = 0;
 int drop = 0;
@@ -144,7 +144,7 @@ int main(int argc, char **argv)
     FD_SET(own_fd, &master);
     int fd_max = own_fd;
     /* Have an immutable start */
-    start = calloc(1, sizeof(struct CBUS_conn));
+    start = calloc(1, sizeof( CBUS_conn));
     if(start == NULL)
     {
         fprintf(stderr, "Out of memory!\n");
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
             }
             else
             {
-                it->next = calloc(1, sizeof(struct CBUS_conn));
+                it->next = calloc(1, sizeof( CBUS_conn));
                 if(it->next == NULL)
                 {
                     fprintf(stderr, "Out of Memory!\n");
@@ -225,13 +225,13 @@ int main(int argc, char **argv)
         }
 
         /*Check every socket for data */
-        struct CBUS_conn *data_it = start->next;
+         CBUS_conn *data_it = start->next;
         while(data_it != NULL)
         {
             if(FD_ISSET(data_it->fd, &read_fds))
             {
                 int err = 0;
-                struct CBUS_msg *cur_msg = cbus_get_msg(data_it, &err);
+                 CBUS_msg *cur_msg = cbus_get_msg(data_it, &err);
                 if(err < 0)
                 {
                     cbusd_disconnect(data_it);
@@ -349,7 +349,7 @@ int cbusd_gen_auth(char *source, char *dest)
     } while (entry = readdir(dir));
     closedir(dir);
 }
-void cbusd_disconnect(struct CBUS_conn *conn)
+void cbusd_disconnect( CBUS_conn *conn)
 {
     if(verbose == 1)
     {
@@ -380,7 +380,7 @@ int cbusd_check_name(char *name)
         }
         return 0;
     }
-    struct CBUS_conn *search_it = start->next;
+     CBUS_conn *search_it = start->next;
     for(;search_it != NULL;search_it = search_it->next)
     {
         if(strstr(search_it->address, name) == search_it->address)
@@ -397,9 +397,9 @@ int cbusd_check_name(char *name)
     }
     return 1;
 }
-struct CBUS_conn *cbusd_get_conn_by_address(char *address)
+ CBUS_conn *cbusd_get_conn_by_address(char *address)
 {
-    struct CBUS_conn *search_it = start->next;
+     CBUS_conn *search_it = start->next;
     for(;search_it != NULL;search_it = search_it->next)
     {
         if(strcmp(search_it->address, address) == 0)
@@ -409,7 +409,7 @@ struct CBUS_conn *cbusd_get_conn_by_address(char *address)
     }
     return search_it;
 }
-int cbusd_process(struct CBUS_conn *sender, struct CBUS_msg *msg)
+int cbusd_process( CBUS_conn *sender,  CBUS_msg *msg)
 {
     if(drop == 1)
     {
@@ -450,10 +450,10 @@ int cbusd_process(struct CBUS_conn *sender, struct CBUS_msg *msg)
             return cbusd_handle_request(sender, msg);
         }
 
-        struct CBUS_conn *recipient = cbusd_get_conn_by_address(msg->to);
+         CBUS_conn *recipient = cbusd_get_conn_by_address(msg->to);
         if(recipient == NULL)
         {
-            struct CBUS_conn *conn = start;
+             CBUS_conn *conn = start;
             if(verbose == 1)
             {
                 fprintf(stderr, "client %s requested %s which wasn't found\n",
@@ -465,10 +465,10 @@ int cbusd_process(struct CBUS_conn *sender, struct CBUS_msg *msg)
     }
     if(msg->type == CBUS_TYPE_SIGNAL)
     {
-        struct CBUS_conn *client_it = start;
+         CBUS_conn *client_it = start;
         for(;client_it != NULL;client_it = client_it->next)
         {
-            struct CBUS_sub *sub_it = client_it->subs;
+             CBUS_sub *sub_it = client_it->subs;
             for(;sub_it != NULL;sub_it = sub_it->next)
             {
                 if(signal_matches(msg, sub_it->sender_name, sub_it->signal_name, ""))
@@ -487,7 +487,7 @@ char *str_copy(char *str)
     memcpy(result, str, strlen(str) + 1);
     return result;
 }
-int cbusd_handle_request(struct CBUS_conn *sender, struct CBUS_msg *msg)
+int cbusd_handle_request( CBUS_conn *sender,  CBUS_msg *msg)
 {
     if(fn_call_matches(msg, "/_daemon", "/request/name", "s"))
     {
@@ -510,17 +510,17 @@ int cbusd_handle_request(struct CBUS_conn *sender, struct CBUS_msg *msg)
             fprintf(stderr, "Subscribe request from %s for signal %s\n", msg->from,
                     msg->args->next->str_value);
         }
-        struct CBUS_sub *sub_it;
+         CBUS_sub *sub_it;
         if(sender->subs == NULL)
         {
-            sender->subs = calloc(1, sizeof(struct CBUS_sub));
+            sender->subs = calloc(1, sizeof( CBUS_sub));
             sub_it = sender->subs;
         }
         else
         {
             sub_it = sender->subs;
             for(;sub_it->next != NULL;sub_it = sub_it->next);
-            sub_it->next = calloc(1, sizeof(struct CBUS_sub));
+            sub_it->next = calloc(1, sizeof( CBUS_sub));
         }
         sub_it->sender_name = str_copy(msg->args->str_value);
         sub_it->signal_name = str_copy(msg->args->next->str_value);

@@ -10,7 +10,7 @@ int main(int argc, char **argv)
 {
     int err;
     /*connect to the daemon*/
-    struct CBUS_conn *conn = cbus_connect("/home/cve/.cbus", &err);
+     CBUS_conn *conn = cbus_connect("/home/cve/.cbus", &err);
     if(conn == NULL)
     {
         fprintf(stderr, "Couldn't connect: %s\n", cbus_errstr(err));

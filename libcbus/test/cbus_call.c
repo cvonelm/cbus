@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     }
     int err = 0;
     /*Connect to the CBUS daemon given in the arguments */
-    struct CBUS_conn *conn = cbus_connect(argv[1], &err);
+     CBUS_conn *conn = cbus_connect(argv[1], &err);
     if(conn == NULL)
     {
         fprintf(stderr, "Couldn't connect: %s\n", cbus_errstr(err));
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     /*Call the function*/
     cbus_call(conn,  "/test2", "/test_function", "ss", "foo", "bar");
     /*Read a message from the bus*/
-    struct CBUS_msg *msg = cbus_read(conn, &err, 0);
+     CBUS_msg *msg = cbus_read(conn, &err, 0);
     if(err != 0)
     {
         fprintf(stderr, "Couldn't read:%s\n", cbus_errstr(err));

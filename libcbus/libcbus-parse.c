@@ -9,9 +9,9 @@
 #include <stdarg.h> 
 #include <stdio.h> 
 
-struct CBUS_msg *cbus_parse_msg(char *msg)
+ CBUS_msg *cbus_parse_msg(char *msg)
 {
-    struct CBUS_msg *result = calloc(1, sizeof(struct CBUS_msg));
+     CBUS_msg *result = calloc(1, sizeof( CBUS_msg));
     result->msg = msg;
     char *msg_it = msg;
     
@@ -76,7 +76,7 @@ struct CBUS_msg *cbus_parse_msg(char *msg)
     }
     msg_it += strlen(result->arg_str) + 1;
     char *arg_str_it;
-    struct CBUS_arg *arg_it;
+     CBUS_arg *arg_it;
     for(arg_str_it = result->arg_str; *arg_str_it != 0;arg_str_it++)
     {
         if(*arg_str_it == 'i')
@@ -85,12 +85,12 @@ struct CBUS_msg *cbus_parse_msg(char *msg)
             {
                 if(result->args == NULL)
                 {
-                    result->args = calloc(1,sizeof(struct CBUS_arg));
+                    result->args = calloc(1,sizeof( CBUS_arg));
                     arg_it = result->args;
                 }
                 else
                 {
-                    arg_it->next = calloc(1,sizeof(struct CBUS_arg));
+                    arg_it->next = calloc(1,sizeof( CBUS_arg));
                     arg_it = arg_it->next;
                 }
                 arg_it->int_value = *(uint32_t *)msg_it;
@@ -109,12 +109,12 @@ struct CBUS_msg *cbus_parse_msg(char *msg)
             {
                 if(result->args == NULL)
                 {
-                    result->args = calloc(1,sizeof(struct CBUS_arg));
+                    result->args = calloc(1,sizeof( CBUS_arg));
                     arg_it = result->args;
                 }
                 else
                 {
-                    arg_it->next = calloc(1,sizeof(struct CBUS_arg));
+                    arg_it->next = calloc(1,sizeof( CBUS_arg));
                     arg_it = arg_it->next;
                 }
                 arg_it->double_value = *(double *)msg_it;
@@ -133,12 +133,12 @@ struct CBUS_msg *cbus_parse_msg(char *msg)
             {
                 if(result->args == NULL)
                 {
-                    result->args = calloc(1,sizeof(struct CBUS_arg));
+                    result->args = calloc(1,sizeof( CBUS_arg));
                     arg_it = result->args;
                 }
                 else
                 {
-                    arg_it->next = calloc(1,sizeof(struct CBUS_arg));
+                    arg_it->next = calloc(1,sizeof( CBUS_arg));
                     arg_it = arg_it->next;
                 }
                 arg_it->str_value = msg_it;

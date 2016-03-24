@@ -101,7 +101,7 @@ char *v_cbus_construct_msg(uint32_t type, uint32_t serial, char *token, char *fr
     }
     return msg;
 }
-char *cbus_construct_return(struct CBUS_msg *msg, char *args,va_list a)
+char *cbus_construct_return( CBUS_msg *msg, char *args,va_list a)
 {
     return v_cbus_construct_msg(CBUS_TYPE_FN_RETURN,
             msg->serial,

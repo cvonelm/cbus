@@ -16,7 +16,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "Usage: %s [base dir]\n");
         return 1;
     }
-    struct CBUS_conn *conn = cbus_connect(argv[1], &err);
+     CBUS_conn *conn = cbus_connect(argv[1], &err);
     if(conn == NULL)
     {
         fprintf(stderr, "Couldn't connect: %s\n", cbus_errstr(err));
@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     /*Subscribe to the signal */
     cbus_subscribe(conn, "/signal_emitter", "/connected");
     /*Read for messages, this will be most probably the signal we subscribed to*/
-    struct CBUS_msg *msg = cbus_read(conn, &err, 0);
+     CBUS_msg *msg = cbus_read(conn, &err, 0);
     if(msg == NULL)
     {
         fprintf(stderr, "Couldn't read: %s\n", cbus_errstr(err));

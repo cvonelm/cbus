@@ -7,12 +7,12 @@
 #define _CBUSD_H_
 #include <stdint.h>
 #include "../libcbus/libcbus.h"
-struct CBUS_conn *cbusd_get_conn_by_address(char *address);
-int cbusd_process(struct CBUS_conn *sender, struct CBUS_msg *msg);
+ CBUS_conn *cbusd_get_conn_by_address(char *address);
+int cbusd_process( CBUS_conn *sender,  CBUS_msg *msg);
 
-void cbusd_disconnect(struct CBUS_conn *conn);
+void cbusd_disconnect( CBUS_conn *conn);
 void parse_args(int argc, char **argv);
-int cbusd_handle_request(struct CBUS_conn *sender, struct CBUS_msg *msg);
+int cbusd_handle_request( CBUS_conn *sender,  CBUS_msg *msg);
 void print_usage();
 char *str_copy(char *str);
 int cbusd_check_name(char *name);

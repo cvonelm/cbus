@@ -4,7 +4,7 @@
 int main(int argc, char **argv)
 {
     int err = 0;
-    struct CBUS_conn *conn = cbus_connect("/home/cve/.cbus", &err);
+     CBUS_conn *conn = cbus_connect("/home/cve/.cbus", &err);
     if(conn == NULL)
     {
         fprintf(stderr, "Couldn't connect: %s\n", cbus_errstr(err));
@@ -17,7 +17,7 @@ int main(int argc, char **argv)
     }
     while(1)
     {
-        struct CBUS_msg *msg = cbus_read(conn, &err, 0);
+         CBUS_msg *msg = cbus_read(conn, &err, 0);
         if(err != 0)
         {
             fprintf(stderr, "Couldn't read: %s\n", cbus_errstr(err));

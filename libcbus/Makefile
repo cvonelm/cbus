@@ -3,17 +3,17 @@ all: auth construct helpers parse libcbus
 		libcbus-parse.o -g3
 
 auth:
-	cc -c -Wall -Werror -fpic libcbus-auth.c -g3
+	cc -c -fpic libcbus-auth.c -g3
 construct:
-	cc -c -Wall -Werror  -fpic libcbus-construct.c -g3
+	cc -c -fpic libcbus-construct.c -g3
 helpers:
-	cc -c -Wall -Werror -fpic libcbus-helpers.c -g3
+	cc -c -fpic libcbus-helpers.c -g3
 
 parse:
-	cc -c -Wall -Werror -fpic libcbus-parse.c -g3
+	cc -c -fpic libcbus-parse.c -g3
 
 libcbus:
-	cc -c -Wall -Werror -fpic libcbus.c -g3
+	cc -c -fpic libcbus.c -g3
 clean:
 	rm -f *.o
 	rm -f *.so

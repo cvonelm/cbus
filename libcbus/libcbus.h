@@ -9,26 +9,33 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdlib.h>
+typedef struct CBUS_conn CBUS_conn;
+typedef struct CBUS_msg CBUS_msg;
+typedef struct CBUS_arg CBUS_arg;
+typedef struct CBUS_sub CBUS_sub;
+
 struct CBUS_conn
 {
     char *address;
     int fd;
-    struct CBUS_sub *subs;
+     CBUS_sub *subs;
     char *msg;
     size_t wanted_len;
     size_t cur_len;
-    struct CBUS_conn *before;
-    struct CBUS_conn *next;
-    struct CBUS_msg *backlog;
+    CBUS_conn *before;
+    CBUS_conn *next;
+    CBUS_msg *backlog;
     char *path;
 };
+
 struct CBUS_sub
 {
     char *sender_name;
     char *signal_name;
     int serial;
-    struct CBUS_sub *next;
+    CBUS_sub *next;
 };
+
 struct CBUS_msg 
 {
     /*proto part*/
@@ -41,11 +48,11 @@ struct CBUS_msg
     char *to;
     char *fn_name;
     char *arg_str;
-    struct CBUS_arg *args;
+     CBUS_arg *args;
     /*END: proto part*/
 
     char *msg;
-    struct CBUS_msg *next;
+    CBUS_msg *next;
     int err;
     char *errstr;
 
@@ -59,7 +66,7 @@ struct CBUS_arg
         char *str_value;
     };
     int type;
-    struct CBUS_arg *next;
+    CBUS_arg *next;
 };
 enum CBUS_msg_type
 {
@@ -94,48 +101,51 @@ enum CBUS_flag
  * care of the right msg length */
 
 /* tools for parsing messages */
-struct CBUS_msg *cbus_parse_msg(char *msg);
+CBUS_msg *cbus_parse_msg(char *msg);
 
-/* tools for constructing messages */
+/* tools for coning messages */
 
 char *cbus_construct_msg(uint32_t type, uint32_t serial, char *token, char *from, char *to,
         char *fn_name, char *args, ...);
 char *v_cbus_construct_msg(uint32_t type, uint32_t serial, char *token, char *from, char *to,
         char *fn_name, char *args, va_list a);
-char *cbus_construct_return(struct CBUS_msg *msg, char *args, va_list a);
+char *cbus_construct_return(CBUS_msg *msg, char *args, va_list a);
 char *cbus_construct_err(uint32_t serial, char *from, char *to, char *fn_name, int err, char *err_msg);
-char *cbus_construct_signal(uint32_t serial, char *token, char *from, char *sig_name, char *args, va_list a);
-void cbus_free_msg(struct CBUS_msg *msg);
+char *cbus_con_signal(uint32_t serial, char *token, char *from, char *sig_name, char *args, va_list a);
+void cbus_free_msg(CBUS_msg *msg);
 
 /* Helpers */
-int fn_call_matches(struct CBUS_msg *msg, char *to, char *fn_name, char *args);
-int fn_return_matches(struct CBUS_msg *msg, char *from, char *fn_name, char *args);
-int signal_matches(struct CBUS_msg *msg, char *from, char *sig_name, char *args);
-void cbus_print_msg(struct CBUS_msg *msg);
+int fn_call_matches(CBUS_msg *msg, char *to, char *fn_name, char *args);
+int fn_return_matches(CBUS_msg *msg, char *from, char *fn_name, char *args);
+int signal_matches(CBUS_msg *msg, char *from, char *sig_name, char *args);
+void cbus_print_msg(CBUS_msg *msg);
 char *cbus_errstr(int err);
 
 
-struct CBUS_conn *cbus_connect(char *address, int *err); 
-void cbus_disconnect(struct CBUS_conn *conn);
-struct CBUS_msg *cbus_read(struct CBUS_conn *conn, int *err, int flags); 
-int cbus_call(struct CBUS_conn *conn, char *address, char *fn_name, char *args, ...);
-int v_cbus_call(struct CBUS_conn *conn, char *address, char *fn_name, char *args, va_list a); 
-int cbus_answer(struct CBUS_conn *conn, struct CBUS_msg *msg, char *args, ...); 
-int cbus_subscribe(struct CBUS_conn *conn, char *sender, char *sig_name);
-int cbus_emit(struct CBUS_conn *conn, char *sig_name, char *args, ...);
+CBUS_conn *cbus_connect(char *address, int *err); 
+void cbus_disconnect(CBUS_conn *conn);
 
-char *cbus_get_auth(struct CBUS_conn *conn, char *address, char *fn_name);
-int cbus_check_auth(struct CBUS_conn *conn, struct CBUS_msg *msg);
+CBUS_msg *cbus_read(CBUS_conn *conn, int *err, int flags); 
 
-struct CBUS_msg *cbus_response(struct CBUS_conn *conn, int *err, char *address,
+int cbus_call(CBUS_conn *conn, char *address, char *fn_name, char *args, ...);
+int v_cbus_call(CBUS_conn *conn, char *address, char *fn_name, char *args, va_list a); 
+
+int cbus_answer(CBUS_conn *conn, CBUS_msg *msg, char *args, ...); 
+int cbus_subscribe(CBUS_conn *conn, char *sender, char *sig_name);
+int cbus_emit( CBUS_conn *conn, char *sig_name, char *args, ...);
+
+char *cbus_get_auth( CBUS_conn *conn, char *address, char *fn_name);
+int cbus_check_auth( CBUS_conn *conn,  CBUS_msg *msg);
+
+ CBUS_msg *cbus_response( CBUS_conn *conn, int *err, char *address,
         char *fn_anme, char *args, ...);
-struct CBUS_msg *cbus_get_msg(struct CBUS_conn *conn, int *err);
-int cbus_send_msg(struct CBUS_conn *conn, char *msg);
-int cbus_send_return(struct CBUS_conn *conn, struct CBUS_msg *msg,
+ CBUS_msg *cbus_get_msg( CBUS_conn *conn, int *err);
+int cbus_send_msg( CBUS_conn *conn, char *msg);
+int cbus_send_return( CBUS_conn *conn,  CBUS_msg *msg,
         char *args, ...);
-int cbus_send_err(struct CBUS_conn *conn, struct CBUS_msg *msg, int err,
+int cbus_send_err( CBUS_conn *conn,  CBUS_msg *msg, int err,
         char *err_msg);
-int cbus_request_name(struct CBUS_conn *conn, char *name);
-void cbus_reset_conn(struct CBUS_conn *conn);
+int cbus_request_name( CBUS_conn *conn, char *name);
+void cbus_reset_conn( CBUS_conn *conn);
 int cbus_check_name(char *name);
 #endif
