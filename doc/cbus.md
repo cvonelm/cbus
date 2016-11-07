@@ -89,9 +89,11 @@ with a "function return" which has this structure
 
 the argument is the name given to the application by the daemon, which has this structure: "/\_unamed/\\w{20,20}"
 
-###Retrieving the token
+###Authentication
 
-Certain function calls or signals may not be send by every application.
+Certain messages may not be send by regular users, for example a message invoking system shutdown. Authentication in the cbus ecosystem is done
+via token files.
+
 The token is the content of the file with the name **[base\_dir]/auth/[receiver]/[function]** for 
 functions or **[base\_dir]/auth/[sender]/[signal name]** for  signals.
 
@@ -99,7 +101,15 @@ The auth directory is filled
 by the CBUS daemon by copying every file, and it access rights from the **[base\_dir]/rules**
 directory and filling it with random, alpha-numeric content. One may restrict
 access to a specific function or signal by changing the access rights of the
-corresponding file inside the "rules" directory
+corresponding token file in the "rules" directory. 
+
+For example if you want to restrict access to the **shutdown** function
+exposed by the **systemd** daemon to the root user you would change ownership
+and sole access right of the **/etc/cbusd/rules/system/shutdown** file to
+root
+
+Note that the cbus daemon needs root permissions to process the example
+rule above
 
 ##Functions which are served by /\_daemon
 

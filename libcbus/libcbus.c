@@ -36,11 +36,18 @@ int cbus_request_name( CBUS_conn *conn, char *name)
     cbus_free_msg(msg);
     return 0;
 }
- CBUS_conn *cbus_connect(char *address, int *err)
+
+CBUS_conn *cbus_connect(char *address, int *err)
 {
     struct sockaddr_un remote;
+    /* thanks posix, but we handle connection closed ourselves*/
     signal(SIGPIPE, SIG_IGN);
-     CBUS_conn *conn = calloc(1, sizeof( CBUS_conn));
+    
+    CBUS_conn *conn = calloc(1, sizeof( CBUS_conn));
+    if(conn == NULL)
+    {
+        return NULL;
+    }
     conn->path = address;
     if((conn->fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
     {
@@ -49,6 +56,7 @@ int cbus_request_name( CBUS_conn *conn, char *name)
         return NULL;
     }
     remote.sun_family = AF_UNIX;
+    
     memcpy(remote.sun_path, address, strlen(address));
     memcpy(remote.sun_path + strlen(address), "/sock", strlen("/sock") + 1);
     int len = strlen(remote.sun_path) + sizeof(remote.sun_family);
@@ -58,7 +66,8 @@ int cbus_request_name( CBUS_conn *conn, char *name)
         *err = CBUS_ERR_CONNECTION;
         return NULL;
     }
-     CBUS_msg *msg = cbus_read(conn, err ,0);
+    
+    CBUS_msg *msg = cbus_read(conn, err ,0);
     if(fn_return_matches(msg, "/_daemon", "/name", "s"))
     {
         conn->address = msg->args->str_value;
@@ -212,8 +221,8 @@ int cbus_emit( CBUS_conn *conn, char *sig_name, char *args, ...)
     {
         return CBUS_ERR_NO_AUTH;
     }
-    char *msg = cbus_con_signal(serial,
-            "",
+    char *msg = cbus_construct_signal(serial,
+            token,
             conn->address,
             sig_name,
             args,

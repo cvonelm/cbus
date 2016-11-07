@@ -111,7 +111,7 @@ char *v_cbus_construct_msg(uint32_t type, uint32_t serial, char *token, char *fr
         char *fn_name, char *args, va_list a);
 char *cbus_construct_return(CBUS_msg *msg, char *args, va_list a);
 char *cbus_construct_err(uint32_t serial, char *from, char *to, char *fn_name, int err, char *err_msg);
-char *cbus_con_signal(uint32_t serial, char *token, char *from, char *sig_name, char *args, va_list a);
+char *cbus_construct_signal(uint32_t serial, char *token, char *from, char *sig_name, char *args, va_list a);
 void cbus_free_msg(CBUS_msg *msg);
 
 /* Helpers */

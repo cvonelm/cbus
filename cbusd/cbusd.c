@@ -36,6 +36,8 @@ fd_set master;
 int verbose = 0;
 int drop = 0;
 int cbusd_clear_dir(char *path);
+
+
 int cbusd_clear_dir(char *path)
 {
     printf("%s\n", path);
@@ -99,10 +101,12 @@ int main(int argc, char **argv)
     signal(SIGPIPE, SIG_IGN);
 
     parse_args(argc, argv);
+    
     cbusd_clear_dir(auth_path);
     mkdir(auth_path, 0777);
     cbusd_gen_auth(rules_path, auth_path);
     
+    /*Create sockets*/
     int own_fd;
     struct sockaddr_un local, remote;
     if((own_fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
@@ -115,16 +119,23 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "Couldn't put the socket into nonblocking mode: %s\n",
                 strerror(errno));
+        return 1;
     }
     local.sun_family = AF_UNIX;
 
     memcpy(local.sun_path, socket_path, strlen(socket_path) + 1);
 
     /*There may be some dead socket laying around from a previous execution */
-    unlink(local.sun_path);
+    if(unlink(local.sun_path))
+    {
+        fprintf(stderr, "Couldn't unlink socket: %s\n",
+                strerror(errno));
+        return 1;
+    }
 
-    size_t len = strlen(local.sun_path) + sizeof(local.sun_family);
-    if(bind(own_fd, (struct sockaddr *)&local, len) == -1)
+    
+    size_t addr_len = strlen(local.sun_path) + sizeof(local.sun_family);
+    if(bind(own_fd, (struct sockaddr *)&local, addr_len) == -1)
     {
         fprintf(stderr, "Couldn't bind to %s: %s\n", socket_path, strerror(errno));
         return 1;
@@ -138,7 +149,10 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "Couldn't change socket permissions:%s\n",
                 strerror(errno));
+        return 1;
     }
+
+    /* Setup fd_set for select */
 
     fd_set  read_fds;
     FD_SET(own_fd, &master);
@@ -148,7 +162,7 @@ int main(int argc, char **argv)
     if(start == NULL)
     {
         fprintf(stderr, "Out of memory!\n");
-        exit(1);
+        return 1;
     }
     start->address = "/_error";
     start->fd = -1;
@@ -231,7 +245,7 @@ int main(int argc, char **argv)
             if(FD_ISSET(data_it->fd, &read_fds))
             {
                 int err = 0;
-                 CBUS_msg *cur_msg = cbus_get_msg(data_it, &err);
+                CBUS_msg *cur_msg = cbus_get_msg(data_it, &err);
                 if(err < 0)
                 {
                     cbusd_disconnect(data_it);
@@ -320,11 +334,27 @@ int cbusd_gen_auth(char *source, char *dest)
             if (entry->d_type == DT_DIR) {
                 struct stat st;
 
-                stat(new_source, &st);
-                mkdir(new_dest, st.st_mode);
+                if(stat(new_source, &st))
+                {
+                    fprintf(stderr, "Could not stat directory %s: %s\n",
+                            entry->d_name, strerror(errno));
+                    return CBUS_ERR_OTHER;
+                }
+
+                if(mkdir(new_dest, st.st_mode))
+                {
+                    fprintf(stderr, "Couldnt create directory \"%s\": %s\n",
+                            new_dest, strerror(errno));
+                    return CBUS_ERR_OTHER;
+
+                }
                 chown(new_dest, st.st_uid, st.st_gid);
 
-                cbusd_gen_auth(new_source, new_dest);
+                int err = cbusd_gen_auth(new_source, new_dest);
+                if(err != 0)
+                {
+                    return err;
+                }
             }
             else if(entry->d_type == DT_REG)
             {
@@ -334,11 +364,14 @@ int cbusd_gen_auth(char *source, char *dest)
                     perror("Couldn't create file: ");
                     exit(1);
                 }
-                perror("");
                 char token[32];
                 cbusd_rand_str(token, 32);
-                printf("%p\n", f);
-                fwrite(token, 1, 32, f);
+                if(fwrite(token, 1, 32, f) != 32)
+                {
+                    fprintf(stderr, "Couldn't write token to %s\n",
+                            new_dest);
+                    return CBUS_ERR_OTHER;
+                }
                 struct stat st;
                 stat(new_source, &st);
                 chown(new_dest, st.st_uid, st.st_gid);
@@ -348,6 +381,7 @@ int cbusd_gen_auth(char *source, char *dest)
         }
     } while (entry = readdir(dir));
     closedir(dir);
+    return 0;
 }
 void cbusd_disconnect( CBUS_conn *conn)
 {
