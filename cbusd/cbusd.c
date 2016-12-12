@@ -40,7 +40,6 @@ int cbusd_clear_dir(char *path);
 
 int cbusd_clear_dir(char *path)
 {
-    printf("%s\n", path);
     DIR *dir;
     struct dirent *entry;
 
@@ -72,7 +71,6 @@ int cbusd_clear_dir(char *path)
             new_path[strlen(path)] = '/';
             memcpy(new_path + strlen(path) + 1,
                     entry->d_name, strlen(entry->d_name) + 1);
-            printf("%s\n", path); 
             if (entry->d_type == DT_DIR) 
             {
                 cbusd_clear_dir(new_path);
@@ -523,7 +521,7 @@ char *str_copy(char *str)
 }
 int cbusd_handle_request( CBUS_conn *sender,  CBUS_msg *msg)
 {
-    if(fn_call_matches(msg, "/_daemon", "/request/name", "s"))
+    if(fn_call_matches(msg, "/_daemon", "/request/name", "ss"))
     {
         if(verbose == 1)
         {
@@ -533,6 +531,13 @@ int cbusd_handle_request( CBUS_conn *sender,  CBUS_msg *msg)
         {
             return cbus_send_err(sender, msg, CBUS_ERR_CONFLICT,
                     "The requested address already exists");
+        }
+        char *token = cbus_get_auth(sender, "/_daemon/names", 
+                msg->args->str_value);
+        if(strcmp(token, msg->args->next->str_value) != 0)
+        {
+            return cbus_send_err(sender, msg, CBUS_ERR_NO_AUTH,
+                    "Permission denied");
         }
         sender->address = str_copy(msg->args->str_value);
         return cbus_send_return(sender, msg, "");

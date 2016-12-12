@@ -20,18 +20,28 @@
 
 int cbus_request_name( CBUS_conn *conn, char *name)
 {
+    uint32_t serial = rand();
     int err;
-     CBUS_msg *msg = cbus_response(conn,&err, "/_daemon", "/request/name", "s", name);
-
-    if(err)
+    //TODO: Names MUST begin with a leadin slash
+    char *token = cbus_get_auth(conn, "/_daemon/names", name);
+    if(token == NULL)
+    {
+        return CBUS_ERR_NO_AUTH;
+    }
+    CBUS_msg  *msg = cbus_response(conn, &err, "/_daemon", "/request/name",
+            "ss", name, token);
+    free(token);
+    if(err != 0)
     {
         return err;
     }
     if(msg->type == CBUS_TYPE_FN_ERR)
     {
+        err = msg->args->int_value;
         cbus_free_msg(msg);
-        return msg->args->int_value;
+        return err;
     }
+    //TODO: Maybe allocate a copy for internal use
     conn->address = name;
     cbus_free_msg(msg);
     return 0;
