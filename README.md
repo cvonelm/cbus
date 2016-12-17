@@ -1,4 +1,4 @@
-#The CBUS Communication Daemon 0.2
+#The CBUS Communication Daemon 0.3
 
 This is the reference implementation of the CBUS communication protocol for doing
 DBUS-like interprocess communication.
@@ -29,6 +29,7 @@ Examples are located in libcbus/test
 - More data types, at least an array type, maybe a byte type
 
 ##Changelog
+- 0.3 "Deamon Days": users can now restrict access to certain names
 - 0.2 "Daemon Days" :Authentication is now working correctly
 - 0.1.1 "Daemon Days" : added shorthands for err, errstr, and cbus\_errstr()
 - 0.1 "Daemon Days" : Initial release

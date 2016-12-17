@@ -10,6 +10,7 @@
  CBUS_conn *cbusd_get_conn_by_address(char *address);
 int cbusd_process( CBUS_conn *sender,  CBUS_msg *msg);
 
+int cbusd_clear_dir(char *path);
 void cbusd_disconnect( CBUS_conn *conn);
 void parse_args(int argc, char **argv);
 int cbusd_handle_request( CBUS_conn *sender,  CBUS_msg *msg);

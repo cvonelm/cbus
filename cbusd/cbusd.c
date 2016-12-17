@@ -25,19 +25,23 @@
 #include <ctype.h>
 
 #include "cbusd.h"
+
+
+#define VERSION "O.3 Daemon Days"   
 /*globals*/
 char *socket_path;
 char *rules_path;
 char *auth_path;
 char *base_dir;
-char *VERSION = "0.1.1 Daemon Days";
- CBUS_conn *start, *it;
+
+CBUS_conn *start, *it;
 fd_set master;
+
+/*options*/
 int verbose = 0;
 int drop = 0;
-int cbusd_clear_dir(char *path);
 
-
+/*Deletes the content of [base_dir]/auth recursively*/
 int cbusd_clear_dir(char *path)
 {
     DIR *dir;
@@ -45,11 +49,18 @@ int cbusd_clear_dir(char *path)
 
     if (!(dir = opendir(path)))
     {
+        fprintf(stderr, "Couldn't open directory %s: %s\n",
+                path, strerror(errno));
         return CBUS_ERR_OTHER;
     }
+    errno=0;
     if (!(entry = readdir(dir)))
     {
-        return CBUS_ERR_OTHER;
+        if(errno != 0)
+        {
+            return CBUS_ERR_OTHER;
+        }
+        return 0;
     }
 
     do 
@@ -76,6 +87,8 @@ int cbusd_clear_dir(char *path)
                 cbusd_clear_dir(new_path);
                 if(remove(new_path) == -1)
                 {
+                    fprintf(stderr, "Couldn't remove %s: %s\n",
+                            new_path, strerror(errno));
                     return CBUS_ERR_OTHER;
                 }
                 
@@ -84,13 +97,17 @@ int cbusd_clear_dir(char *path)
             {
                 if(remove(new_path) == -1)
                 {
+                    fprintf(stderr, "Couldn't remove %s: %s\n",
+                            new_path, strerror(errno));
                     return CBUS_ERR_OTHER;
                 }
 
             }
+            free(new_path);
         }
     } while (entry = readdir(dir));
     closedir(dir);
+    return 0;
 }
 int main(int argc, char **argv)
 {
@@ -99,11 +116,55 @@ int main(int argc, char **argv)
     signal(SIGPIPE, SIG_IGN);
 
     parse_args(argc, argv);
-    
-    cbusd_clear_dir(auth_path);
-    mkdir(auth_path, 0777);
-    cbusd_gen_auth(rules_path, auth_path);
-    
+    DIR *dir;
+    if((dir = opendir(rules_path)) == NULL)
+    {
+        if(errno != ENOENT)
+        {
+            fprintf(stderr, "Couldn't check if %s exists: %s\n",
+                    rules_path, strerror(errno));
+            exit(1);
+        }
+        if((dir = opendir(auth_path)) != NULL)
+        {
+            if(cbusd_clear_dir(auth_path) != 0)
+            {
+                exit(1);
+            }
+            closedir(dir);
+        }
+    }
+    else
+    {
+        closedir(dir);
+        if((dir = opendir(auth_path)) == NULL)
+        {
+            if(errno != ENOENT)
+            {
+                fprintf(stderr, "Couldn't check if %s exists: %s\n",
+                        auth_path, strerror(errno));
+                exit(1);
+            }
+            if(mkdir(auth_path, 0755) != 0)
+            {
+                fprintf(stderr, "Couldn't create directory %s: %s\n",
+                        auth_path, strerror(errno));
+                exit(1);
+            }
+        }
+        else
+        {
+            if(cbusd_clear_dir(auth_path) != 0)
+            {
+                exit(1);
+            }
+            closedir(dir);
+        }
+        if(cbusd_gen_auth(rules_path, auth_path) != 0)
+        {
+            exit(1);
+        }
+    }
     /*Create sockets*/
     int own_fd;
     struct sockaddr_un local, remote;
@@ -124,7 +185,7 @@ int main(int argc, char **argv)
     memcpy(local.sun_path, socket_path, strlen(socket_path) + 1);
 
     /*There may be some dead socket laying around from a previous execution */
-    if(unlink(local.sun_path))
+    if(unlink(local.sun_path) && errno != ENOENT)
     {
         fprintf(stderr, "Couldn't unlink socket: %s\n",
                 strerror(errno));
@@ -253,6 +314,7 @@ int main(int argc, char **argv)
                     if(cbusd_process(data_it, cur_msg) < 0)
                     {
                         cbusd_disconnect(data_it);
+                        cbus_free_msg(cur_msg);
                         continue;
                     }
                     cbus_reset_conn(data_it);
@@ -346,7 +408,12 @@ int cbusd_gen_auth(char *source, char *dest)
                     return CBUS_ERR_OTHER;
 
                 }
-                chown(new_dest, st.st_uid, st.st_gid);
+                if(chown(new_dest, st.st_uid, st.st_gid))
+                {
+                    fprintf(stderr, "couldnt chown directory \"%s\": %s\n"
+                            ,new_dest, strerror(errno));
+                    return CBUS_ERR_OTHER;
+                }
 
                 int err = cbusd_gen_auth(new_source, new_dest);
                 if(err != 0)
@@ -360,7 +427,7 @@ int cbusd_gen_auth(char *source, char *dest)
                 if(f == NULL)
                 {
                     perror("Couldn't create file: ");
-                    exit(1);
+                    return CBUS_ERR_OTHER;
                 }
                 char token[32];
                 cbusd_rand_str(token, 32);
@@ -371,11 +438,28 @@ int cbusd_gen_auth(char *source, char *dest)
                     return CBUS_ERR_OTHER;
                 }
                 struct stat st;
-                stat(new_source, &st);
-                chown(new_dest, st.st_uid, st.st_gid);
-                chmod(new_dest, st.st_mode);
+                if(stat(new_source, &st) != 0)
+                {
+                    fprintf(stderr, "Couldn't stat file %s: %s\n",
+                            new_source, strerror(errno));
+                    return CBUS_ERR_OTHER;
+                }
+                if(chown(new_dest, st.st_uid, st.st_gid) != 0)
+                {
+                    fprintf(stderr, "Couldn't chown of %s: %s\n",
+                            new_dest, strerror(errno));
+                    return CBUS_ERR_OTHER;
+                }
+                if(chmod(new_dest, st.st_mode) != 0)
+                {
+                    fprintf(stderr, "Couldn't change mode of file %s: %s\n"
+                        ,new_dest, strerror(errno));
+                    return CBUS_ERR_OTHER;
+                }
                 fclose(f);
             }
+            free(new_source);
+            free(new_dest);
         }
     } while (entry = readdir(dir));
     closedir(dir);
@@ -449,10 +533,8 @@ int cbusd_process( CBUS_conn *sender,  CBUS_msg *msg)
     }
     if(strcmp(msg->from, sender->address) != 0)
     {
-        fprintf(stderr, "%s==%s\n", msg->from, sender->address);
         return cbus_send_err(sender, msg, CBUS_ERR_CONNECTION,
                 "Wrong sender field");
-
 
     }
 
@@ -461,7 +543,7 @@ int cbusd_process( CBUS_conn *sender,  CBUS_msg *msg)
         return cbus_send_err(sender, msg, CBUS_ERR_NO_AUTH, 
                 "Permission denied");
     }
-
+    /*Clear the token field*/
     if(*msg->token != 0)
     {
         *msg->token = 0;
@@ -482,10 +564,9 @@ int cbusd_process( CBUS_conn *sender,  CBUS_msg *msg)
             return cbusd_handle_request(sender, msg);
         }
 
-         CBUS_conn *recipient = cbusd_get_conn_by_address(msg->to);
+        CBUS_conn *recipient = cbusd_get_conn_by_address(msg->to);
         if(recipient == NULL)
         {
-             CBUS_conn *conn = start;
             if(verbose == 1)
             {
                 fprintf(stderr, "client %s requested %s which wasn't found\n",
@@ -497,10 +578,10 @@ int cbusd_process( CBUS_conn *sender,  CBUS_msg *msg)
     }
     if(msg->type == CBUS_TYPE_SIGNAL)
     {
-         CBUS_conn *client_it = start;
+        CBUS_conn *client_it = start;
         for(;client_it != NULL;client_it = client_it->next)
         {
-             CBUS_sub *sub_it = client_it->subs;
+            CBUS_sub *sub_it = client_it->subs;
             for(;sub_it != NULL;sub_it = sub_it->next)
             {
                 if(signal_matches(msg, sub_it->sender_name, sub_it->signal_name, ""))
@@ -549,7 +630,7 @@ int cbusd_handle_request( CBUS_conn *sender,  CBUS_msg *msg)
             fprintf(stderr, "Subscribe request from %s for signal %s\n", msg->from,
                     msg->args->next->str_value);
         }
-         CBUS_sub *sub_it;
+        CBUS_sub *sub_it;
         if(sender->subs == NULL)
         {
             sender->subs = calloc(1, sizeof( CBUS_sub));
@@ -568,10 +649,12 @@ int cbusd_handle_request( CBUS_conn *sender,  CBUS_msg *msg)
     }
     else
     {
-        return cbus_send_err(sender, msg, CBUS_ERR_UNKNOWN_FN, "This function is not defined");
+        return cbus_send_err(sender, msg, CBUS_ERR_UNKNOWN_FN, "This , daemon function is not defined");
     }
     return 0;
 }
+/* Parse command line args*/
+
 void parse_args(int argc,char ** argv)
 {
     int i = 1;
@@ -621,7 +704,8 @@ void parse_args(int argc,char ** argv)
         }
         else
         {
-            fprintf(stderr, "Option not recognized: %s\n", argv[i]);
+            fprintf(stderr, "Invalid option: %s\n", argv[i]);
+            fprintf(stderr, "See -h for help\n");
             exit(1);
         }
 

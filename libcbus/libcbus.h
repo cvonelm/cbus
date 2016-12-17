@@ -91,7 +91,8 @@ enum CBUS_err
     CBUS_ERR_NOT_FOUND=-6,
     CBUS_ERR_CONFLICT=-7,
     CBUS_ERR_NOMEM=-8,
-    CBUS_ERR_UNKNOWN_FN=-9
+    CBUS_ERR_UNKNOWN_FN=-9,
+    CBUS_ERR_NAME=-10
 };
 enum CBUS_flag
 {

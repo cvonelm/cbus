@@ -16,7 +16,7 @@ int main(int argc, char **argv)
         return 1;
     }
     /*Connect to the daemon*/
-     CBUS_conn *conn = cbus_connect("/home/cve/.cbus", &err);
+     CBUS_conn *conn = cbus_connect(argv[1], &err);
     if(err != 0)
     {
         fprintf(stderr, "Couldn't connect: %s\n", cbus_errstr(err));

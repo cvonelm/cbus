@@ -194,6 +194,10 @@ char *cbus_errstr(int err)
     {
         return "This function is not defined";
     }
+    else if(err == CBUS_ERR_NAME)
+    {
+        return "Invalid name";
+    }
     else
     {
         return "Unknown Error";

@@ -22,7 +22,10 @@ int cbus_request_name( CBUS_conn *conn, char *name)
 {
     uint32_t serial = rand();
     int err;
-    //TODO: Names MUST begin with a leadin slash
+    if(name[0] != '/' || name[strlen(name)-1] == '/')
+    {
+        return CBUS_ERR_NAME;
+    }
     char *token = cbus_get_auth(conn, "/_daemon/names", name);
     if(token == NULL)
     {
@@ -41,8 +44,8 @@ int cbus_request_name( CBUS_conn *conn, char *name)
         cbus_free_msg(msg);
         return err;
     }
-    //TODO: Maybe allocate a copy for internal use
-    conn->address = name;
+    conn->address = malloc(strlen(name) + 1);
+    memcpy(conn->address, name, strlen(name) + 1);
     cbus_free_msg(msg);
     return 0;
 }
@@ -328,6 +331,7 @@ void cbus_disconnect( CBUS_conn *conn)
         msg = temp;
     }
     close(conn->fd);
+    free(conn->address);
     free(conn);
 }
 

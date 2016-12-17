@@ -1,7 +1,5 @@
-#the CBUS reference implentation
+#CBUS for application Developers
 
-This API description only covers the "public" API. all other
-function are meant for internal use only and may be subject to change
 ##Central data types
 
 ###CBUS\_conn
@@ -12,8 +10,7 @@ This structure holds the information on a single connection
 - char \*address | the address of the connection
 - int fd | the file descriptor
 -  CBUS\_sub \*subs | the signals the client subscribed to.
-- char \*path | the path of the Unix Domain Socket, which this
-connection is connected to
+- char \*path | the path of the cbus connection
 
 ###CBUS\_sub
 This structure holds information on a single signal subscription of a
@@ -26,18 +23,27 @@ connection
 
 - uint32\_t length  | the length of the message
 - uint32\_t type | the type of the message
-- uint32\_t serial | the serial of the message
-- char \*token | the token
-- char \*from | the sender's name
+- uint32\_t serial | the serial of the message, a random number connecting calls and replies
+- char \*token | the access token
+- char \*from | the callers/emitters name
 - char \*to | the receiver's name
-- char \*fn\_name | the signal's or sender's name
+- char \*fn\_name | the name of the emitted signal or called function
 - char \*arg\_str | string describing the arguments
 -  CBUS\_arg \*args | the arguments
 - char \*msg | the message as is
 - char \*errstr | shorthand to get the error string when the message is an error
 - int err | shorthand for the error number
 
-Refer to the protocol definition for more information on this
+The arg\_str consists of characters which each describe the type of one argument
+
+- "s" a NULL-terminated string
+- "i" an integer
+- "d" a double precision floating point 
+
+For example "dis" would describe 3 arguments, first being a double,
+second being a integer and the last being a stirng
+
+Refer to the protocol definition about messages for more information on this
 data structure
 
 ### CBUS\_arg
@@ -54,29 +60,18 @@ You may only access the \*\_value which matches the data type
 ##Helpers
 
 ###int fn\_call\_matches( CBUS\_msg \*msg, char \*to, char \*fn\_name, char \*args);
-Checks wether the arguments given to this function are equal to the
-corresponding fields inside the "msg" structure.
-
-Arguments may be "", when they aren't checked for.
-
 ###int fn\_return\_matches( CBUS\_msg \*msg, char \*from, char \*fn\_name, char \*args);
-Checks wether the arguments given to this function are equal to the
-corresponding fields inside the "msg" structure.
-
-Arguments may be "", when they aren't checked for.
-
 ###int signal\_matches( CBUS\_msg \*msg, char \*from, char \*sig\_name, char \*args);
-Checks wether the arguments given to this function are equal to the
-corresponding fields inside the "msg" structure.
 
-Arguments may be "", when they aren't checked for.
+Checks wether msg matches our definition
+if an argument is "", cbus will not check it.
 
 ###void cbus\_print\_msg( CBUS\_msg \*msg)
 
-Debug call to print messages
+Print a  messages
 
 **Arguments**
--  CBUS\_msg \*msg | the message to be printed
+-  CBUS\_msg \*msg | the message that will be printed
 
 ###char \*cbus\_errstr(int err)
 Returns a human-readable description of an error number
@@ -100,18 +95,19 @@ NULL on failure
 ###void cbus\_disconnect( CBUS\_conn \*conn);
 
 Disconnects the connection "conn" and frees the corresponding structure
+
 ##Receiving messages
 
 ### CBUS\_msg \*cbus\_read( CBUS\_conn \*conn, int \*err, int flags);
 
 **Arguments**
--  CBUS\_conn \*conn | the connection to be read on
+-  CBUS\_conn \*conn | the connection that will be read
 - int \*err | pointer to an integer filled with an error code
-- int flags | should be always 0
+- int flags | should be always 0 (for future additions)
 
 **Returns**
 
-The read message
+The message read
 **Errors**
 
 - CBUS\_ERR\_CONNECTION | the connection failed
@@ -131,7 +127,7 @@ The positive serial of the sent message, or a negative error code on error
 
 - CBUS\_ERR\_NO\_AUTH | the application lacks the rights to call this function
 - CBUS\_ERR\_PARSE | the construction of the message failed
-- CBUS\_ERR\_CONNECTION | the connection had an error
+- CBUS\_ERR\_CONNECTIONNECTION | the connection had an error
 - CBUS\_ERR\_DISCONNECT | we were disconnected
 
 ### CBUS\_msg \*cbus\_response( CBUS\_conn \*conn, int \*err, char \*address, char \*fn\_name, char \*args, ...);

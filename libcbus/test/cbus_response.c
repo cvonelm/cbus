@@ -4,7 +4,12 @@
 int main(int argc, char **argv)
 {
     int err = 0;
-     CBUS_conn *conn = cbus_connect("/home/cve/.cbus", &err);
+    if(argc < 2)
+    {
+        fprintf(stderr, "Usage %s [base_dir]\n", argv[0]);
+        exit(10);
+    }
+     CBUS_conn *conn = cbus_connect(argv[1], &err);
     if(conn == NULL)
     {
         fprintf(stderr, "Couldn't connect: %s\n", cbus_errstr(err));
