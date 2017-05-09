@@ -138,7 +138,7 @@ void cbus_print_msg( CBUS_msg *msg)
         {
             if(arg->type == CBUS_TYPE_STRING)
             {
-                fprintf(stderr, "\t%s [string]\n", arg->str_value);
+                fprintf(stderr, "\t\"%s\" [string]\n", arg->str_value);
             }
             else if(arg->type == CBUS_TYPE_INT)
             {

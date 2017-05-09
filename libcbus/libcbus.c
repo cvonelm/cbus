@@ -83,7 +83,8 @@ CBUS_conn *cbus_connect(char *address, int *err)
     CBUS_msg *msg = cbus_read(conn, err ,0);
     if(fn_return_matches(msg, "/_daemon", "/name", "s"))
     {
-        conn->address = msg->args->str_value;
+        conn->address = malloc(strlen(msg->args->str_value) + 1);
+        memcpy(conn->address, msg->args->str_value, strlen(msg->args->str_value));
     }
     else
     {
@@ -136,41 +137,45 @@ int cbus_answer( CBUS_conn *conn,  CBUS_msg *msg, char *args, ...)
 {
     *err = 0;
     int read_size;
-        ioctl(conn->fd, FIONREAD, &read_size);
-        if(read_size == 0)
+    ioctl(conn->fd, FIONREAD, &read_size);
+    if(read_size == 0)
+    {
+        *err = CBUS_ERR_DISCONNECT;
+        return NULL;
+    }
+    if(conn->msg == NULL)
+    {
+        if(read_size < 4)
         {
             *err = CBUS_ERR_DISCONNECT;
             return NULL;
-typedef struct CBUS_sub CBUS_sub;
         }
-        if(conn->msg == NULL)
+        conn->msg = malloc(sizeof(uint32_t));
+        if(recv(conn->fd, conn->msg, sizeof(uint32_t), 0) == -1)
         {
-            conn->msg = malloc(sizeof(uint32_t));
-            if(recv(conn->fd, conn->msg, sizeof(uint32_t), 0) == -1)
-            {
-                free(conn->msg);
-                conn->msg = NULL;
-                *err = CBUS_ERR_CONNECTION;
-                return NULL;
-            }
-            conn->wanted_len = *(uint32_t*)conn->msg;
-            conn->cur_len = sizeof(uint32_t);
-            read_size -= sizeof(uint32_t);
-            conn->msg = realloc(conn->msg, conn->wanted_len);
+            free(conn->msg);
+            conn->msg = NULL;
+            *err = CBUS_ERR_CONNECTION;
+            return NULL;
         }
-        if(read_size + conn->cur_len >= conn->wanted_len)
-        {
-            recv(conn->fd, conn->msg + conn->cur_len, conn->wanted_len - conn->cur_len, 0);
-             CBUS_msg *msg = cbus_parse_msg(conn->msg);
-            cbus_reset_conn(conn);
-            return msg;
-        }
-        else if(read_size + conn->cur_len < conn->wanted_len)
-        {
-            recv(conn->fd, conn->msg + conn->cur_len, read_size, 0);
-            conn->cur_len += read_size;
-        }
-        return NULL;
+        conn->wanted_len = *(uint32_t*)conn->msg;
+        conn->cur_len = sizeof(uint32_t);
+        read_size -= sizeof(uint32_t);
+        conn->msg = realloc(conn->msg, conn->wanted_len);
+    }
+    if(read_size + conn->cur_len >= conn->wanted_len)
+    {
+        recv(conn->fd, conn->msg + conn->cur_len, conn->wanted_len - conn->cur_len, 0);
+        CBUS_msg *msg = cbus_parse_msg(conn->msg);
+        cbus_reset_conn(conn);
+        return msg;
+    }
+    else if(read_size + conn->cur_len < conn->wanted_len)
+    {
+        recv(conn->fd, conn->msg + conn->cur_len, read_size, 0);
+        conn->cur_len += read_size;
+    }
+    return NULL;
 
 }
 void cbus_reset_conn( CBUS_conn *conn)

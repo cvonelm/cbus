@@ -11,21 +11,30 @@
 
  CBUS_msg *cbus_parse_msg(char *msg)
 {
-     CBUS_msg *result = calloc(1, sizeof( CBUS_msg));
+    CBUS_msg *result = calloc(1, sizeof( CBUS_msg));
     result->msg = msg;
     char *msg_it = msg;
-    
     /*LENGTH*/
-
+    /*This is always safe because the buffer is at least 4 bytes long, and always
+     * as long as the data that is received -- we can always access msg[result->length-1]
+     */
     result->length = *(uint32_t *)msg;
     char *msg_end = msg + result->length; 
     msg_it += sizeof(uint32_t);
-    
     /*TYPE*/
+    if(msg_it + sizeof(uint32_t) > msg_end)
+    {
+        free(result);
+        return NULL;
+    }
     result->type = *(uint32_t *)msg_it;
     msg_it += sizeof(uint32_t);
-    
     /*SERIAL*/
+    if(msg_it + sizeof(uint32_t) > msg_end)
+    {
+        free(result);
+        return NULL;
+    }
     result->serial = *(uint32_t *)msg_it;
     msg_it += sizeof(uint32_t);
     
@@ -76,7 +85,7 @@
     }
     msg_it += strlen(result->arg_str) + 1;
     char *arg_str_it;
-     CBUS_arg *arg_it;
+    CBUS_arg *arg_it;
     for(arg_str_it = result->arg_str; *arg_str_it != 0;arg_str_it++)
     {
         if(*arg_str_it == 'i')
