@@ -1,8 +1,8 @@
-#The CBUS Protocol
+# The CBUS Protocol
 The CBUS protocol consists of messages which are sent over an Unix
 Domain Socket.
-##The message format
-###The data Types
+## The message format
+### The data Types
 these data types are used troughout the protocol
 
 - string | a variable-length null-terminated string
@@ -35,7 +35,7 @@ start with "/\_unnamed"
 
 The token  field is always cleared by the daemon before delivery.
 
-###The argument string
+### The argument string
 
 The argument string denotes the type of the given arguments. 
 
@@ -46,38 +46,38 @@ The argument string denotes the type of the given arguments.
 Example:
 The argument string is "sis" means that  the variable arguments are a string, followed
 by an integer followed by another string.
-###The message format of specific messages
-####Function calls
+### The message format of specific messages
+#### Function calls
 
 - the serial is a pseudo-random integer
 - fn\_name is the function to be called
 
-####Function returns
+#### Function returns
 
 - the token is ""
 - the remaining fields are copied from the function call, with from and to switched
-####Errors
+#### Errors
 
 - the arguments are an integer, which is the error code, followed by a string which
 is the error message
 - the remaining fields are copied from the errornous message, with from and to switched
-####Signals
+#### Signals
 
 - the "to" field is empty
 - the "fn\_name" is the name of the signal
 
-##The CBUS directory
+## The CBUS directory
 All relevant files of a specific CBUS instance are stored inside the CBUS base directory
 which is located in /etc/cbusd for the system-wide instance, $HOME/.cbusd for the session
 wide instance or in a custom location
-##Special names on the cbus
+## Special names on the cbus
 
 These names are special and may not be used by application
 
 - /\_daemon | the CBUS daemon
 - /\_error | an application which is always unconnected
 
-##Connecting to the CBUSD
+## Connecting to the CBUSD
 
 An application starts the connection by connecting to the Unix domain socket
 "sock" inside the cbus base directory. The CBUS answers the connection request
@@ -89,7 +89,7 @@ with a "function return" which has this structure
 
 the argument is the name given to the application by the daemon, which has this structure: "/\_unamed/\\w{20,20}"
 
-###Authentication
+### Authentication
 
 Certain messages may not be send by regular users, for example a message invoking system shutdown. Authentication in the cbus ecosystem is done
 via token files.
@@ -111,19 +111,30 @@ root
 Note that the cbus daemon needs root permissions to process the example
 rule above
 
-##Functions which are served by /\_daemon
+## Functions which are served by /\_daemon
 
-- "request\_name", args="s"
+- "request\_name", args="ss"
+
+**Arguments**
+
+- The name requested
+- The token from "/\_daemon/names/[name]
 
 request the name which is given in the arguments as the new name.
-On success the daemon answers with an empty return message and updates
+if the name is not yet taken and the token provided
+matches the actual token in /\_daemon/names/[name] the daemon answers with an empty return message and updates
 the name accordingly. 
 
 **Errors:**
 
-- CBUS\_ERR\_CONFLICT:
-Another application already registered a conflicting name. Application names are handled
-like directories, the connecting is like creating the application names directory,
-disconnecting like clearing it. If a directory already exists, the operation fails
+**CBUS\_ERR\_CONFLICT**
 
+Another application already registered a conflicting name.
 
+for example if a program with the name "/foo" is already connected, requesting "/foo/bar"
+will fail
+
+**CBUS\_ERR\_NO\_AUTH**
+
+The authentication failed because the given token in the arguments does not match the one in
+/\_daemon/names/[name]

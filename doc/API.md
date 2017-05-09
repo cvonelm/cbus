@@ -1,8 +1,8 @@
-#CBUS for application Developers
+# CBUS for application Developers
 
-##Central data types
+## Central data types
 
-###CBUS\_conn
+### CBUS\_conn
 This structure holds the information on a single connection
 
 **Fields**
@@ -12,14 +12,14 @@ This structure holds the information on a single connection
 -  CBUS\_sub \*subs | the signals the client subscribed to.
 - char \*path | the path of the cbus connection
 
-###CBUS\_sub
+### CBUS\_sub
 This structure holds information on a single signal subscription of a
 connection
 
 - char \*sender\_name | which sender we want to listen for
 - char \*signal\_name | which signal name we want to listen for
 
-###CBUS\_msg
+### CBUS\_msg
 
 - uint32\_t length  | the length of the message
 - uint32\_t type | the type of the message
@@ -55,28 +55,28 @@ data structure
 
 You may only access the \*\_value which matches the data type
 
-#The API
+# The API
 
-##Helpers
+## Helpers
 
-###int fn\_call\_matches( CBUS\_msg \*msg, char \*to, char \*fn\_name, char \*args);
-###int fn\_return\_matches( CBUS\_msg \*msg, char \*from, char \*fn\_name, char \*args);
-###int signal\_matches( CBUS\_msg \*msg, char \*from, char \*sig\_name, char \*args);
+### int fn\_call\_matches( CBUS\_msg \*msg, char \*to, char \*fn\_name, char \*args);
+### int fn\_return\_matches( CBUS\_msg \*msg, char \*from, char \*fn\_name, char \*args);
+### int signal\_matches( CBUS\_msg \*msg, char \*from, char \*sig\_name, char \*args);
 
 Checks wether msg matches our definition
 if an argument is "", cbus will not check it.
 
-###void cbus\_print\_msg( CBUS\_msg \*msg)
+### void cbus\_print\_msg( CBUS\_msg \*msg)
 
 Print a  messages
 
 **Arguments**
 -  CBUS\_msg \*msg | the message that will be printed
 
-###char \*cbus\_errstr(int err)
+### char \*cbus\_errstr(int err)
 Returns a human-readable description of an error number
 
-##Starting and stopping the connection
+## Starting and stopping the connection
 
 ### CBUS\_conn \*cbus\_connect(char \*address, int \*err)
 
@@ -92,11 +92,11 @@ NULL on failure
 **Errors**
 - CBUS\_ERR\_CONNECTION | connecting to the daemon failed
 
-###void cbus\_disconnect( CBUS\_conn \*conn);
+### void cbus\_disconnect( CBUS\_conn \*conn);
 
 Disconnects the connection "conn" and frees the corresponding structure
 
-##Receiving messages
+## Receiving messages
 
 ### CBUS\_msg \*cbus\_read( CBUS\_conn \*conn, int \*err, int flags);
 
@@ -112,9 +112,9 @@ The message read
 
 - CBUS\_ERR\_CONNECTION | the connection failed
 
-##Calling functions
+## Calling functions
 
-###int cbus\_call( CBUS\_conn \*conn, char \*address, char \*fn\_name,char \*args, ...)
+### int cbus\_call( CBUS\_conn \*conn, char \*address, char \*fn\_name,char \*args, ...)
 
 Calls a function
 
@@ -155,9 +155,9 @@ err will be set
 - CBUS\_ERR\_DISCONNECT | we were disconnected
 
 
-##Answering function calls
+## Answering function calls
 
-###int cbus\_answer( CBUS\_conn \*conn,  CBUS\_msg \*msg, char \*args, ...)
+### int cbus\_answer( CBUS\_conn \*conn,  CBUS\_msg \*msg, char \*args, ...)
 
 Answers a function call
 
@@ -175,9 +175,9 @@ Answers a function call
 
 - CBUS\_ERR\_PARSE | Construction of the answer message failed
 
-##Subscribing to and sending signals
+## Subscribing to and sending signals
 
-###int cbus\_subscribe( CBUS\_conn \*conn, char \*sender, char \*sig\_name)
+### int cbus\_subscribe( CBUS\_conn \*conn, char \*sender, char \*sig\_name)
 
 Subscribes to a signal
 
@@ -195,7 +195,7 @@ Subscribes to a signal
 - CBUS\_ERR\_CONNECTION | the connection had an error
 - CBUS\_ERR\_DISCONNECT | we were disconnected
 
-###int cbus\_emit( CBUS\_conn \*conn, char \*sig\_name, char \*args, ...)
+### int cbus\_emit( CBUS\_conn \*conn, char \*sig\_name, char \*args, ...)
 
 **Arguments**
 -  CBUS\_conn \*conn | Connection on which the signal is sent
@@ -210,9 +210,9 @@ Subscribes to a signal
 **Errors**
 - CBUS\_ERR\_NO\_AUTH | the application lacks rights to send this signal
 - CBUS\_ERR\_PARSE | couldn't construct the signal
-##Functions for interacting with the daemon
+## Functions for interacting with the daemon
 
-###int cbus\_request\_name( CBUS\_conn \*conn, char \*name)
+### int cbus\_request\_name( CBUS\_conn \*conn, char \*name)
 
 Requests a (new) name
 
@@ -231,8 +231,8 @@ Requests a (new) name
 - CBUS\_ERR\_DISCONNECT | we were disconnected
 - CBUS\_ERR\_CONFLICT | this name conflicts with another
 
-#Enumerations
-##CBUS\_msg\_type
+# Enumerations
+## CBUS\_msg\_type
 the message types:
 
 - CBUS\_TYPE\_FN\_CALL
