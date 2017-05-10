@@ -317,7 +317,6 @@ int main(int argc, char **argv)
                         cbus_free_msg(cur_msg);
                         continue;
                     }
-                    cbus_reset_conn(data_it);
                     cbus_free_msg(cur_msg);
                 }
             }

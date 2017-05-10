@@ -20,8 +20,9 @@ struct CBUS_conn
     int fd;
      CBUS_sub *subs;
     char *msg;
-    size_t wanted_len;
-    size_t cur_len;
+    size_t wanted_len; //length of the fully received msg
+    size_t cur_len; //length of the received data
+    size_t buf_len; //length of the buffer
     CBUS_conn *before;
     CBUS_conn *next;
     CBUS_msg *backlog;

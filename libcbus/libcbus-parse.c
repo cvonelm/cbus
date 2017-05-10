@@ -12,19 +12,21 @@
  CBUS_msg *cbus_parse_msg(char *msg)
 {
     CBUS_msg *result = calloc(1, sizeof( CBUS_msg));
-    result->msg = msg;
-    char *msg_it = msg;
+    result->msg = calloc(1, *(uint32_t *)msg);
+    memcpy(result->msg, msg,  *(uint32_t *)msg);
+    char *msg_it = result->msg;
     /*LENGTH*/
     /*This is always safe because the buffer is at least 4 bytes long, and always
      * as long as the data that is received -- we can always access msg[result->length-1]
      */
-    result->length = *(uint32_t *)msg;
-    char *msg_end = msg + result->length; 
+    result->length = *(uint32_t *)result->msg;
+
+    char *msg_end = result->msg + result->length; 
     msg_it += sizeof(uint32_t);
     /*TYPE*/
     if(msg_it + sizeof(uint32_t) > msg_end)
     {
-        free(result);
+        cbus_free_msg(result);
         return NULL;
     }
     result->type = *(uint32_t *)msg_it;
@@ -32,7 +34,7 @@
     /*SERIAL*/
     if(msg_it + sizeof(uint32_t) > msg_end)
     {
-        free(result);
+        cbus_free_msg(result);
         return NULL;
     }
     result->serial = *(uint32_t *)msg_it;
@@ -42,7 +44,7 @@
     result->token = msg_it;
     if(strnlen(result->token, msg_end - msg_it) == msg_end - msg_it)
     {
-        free(result);
+        cbus_free_msg(result);
         return NULL;
     }
     /* it is safe to us strlen here as we proved that result->token is null-terminated above */
@@ -52,7 +54,7 @@
     result->from = msg_it;
     if(strnlen(result->from, msg_end - msg_it) == msg_end - msg_it)
     {
-        free(result);
+        cbus_free_msg(result);
         return NULL;
     }
     msg_it += strlen(result->from) + 1;
@@ -61,7 +63,7 @@
     result->to = msg_it;
     if(strnlen(result->to, msg_end - msg_it) == msg_end - msg_it)
     {
-        free(result);
+        cbus_free_msg(result);
         return NULL;
     }
     msg_it += strlen(result->to) + 1;
@@ -71,7 +73,7 @@
     result->fn_name = msg_it;
     if(strnlen(result->fn_name, msg_end - msg_it) == msg_end - msg_it)
     {
-        free(result);
+        cbus_free_msg(result);
         return NULL;
     }
     msg_it += strlen(result->fn_name) + 1;
@@ -80,7 +82,7 @@
     if(strnlen(result->arg_str, msg_end - msg_it) == msg_end - msg_it)
     {
         
-        free(result);
+        cbus_free_msg(result);
         return NULL;
     }
     msg_it += strlen(result->arg_str) + 1;
@@ -108,7 +110,7 @@
             }
             else
             {
-                free(result);
+                cbus_free_msg(result);
                 return NULL;
             }
         }
@@ -132,7 +134,7 @@
             }
             else
             {
-                free(result);
+                cbus_free_msg(result);
                 return NULL;
             }
         }
@@ -157,9 +159,14 @@
             else
             {
 
-                free(result);
+                cbus_free_msg(result);
                 return NULL;
             }
+        }
+        else
+        {
+            cbus_free_msg(result);
+            return NULL;
         }
     }
     if(result->type == CBUS_TYPE_FN_ERR)
@@ -171,7 +178,7 @@
         }
         else
         {
-            free(result);
+            cbus_free_msg(result);
             return NULL;
         }
     }

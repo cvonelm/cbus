@@ -7,7 +7,8 @@ int main()
     /*Kind of hacky fuzzy test to check wether the parser is failsafe*/
     unsigned char *str = malloc(255);
     srand(time(NULL));
-    while(1)
+    int x;
+    for(x = 0;x < 1000;++x)
     {
         int len = rand() % 252 + 4;
         int i;
@@ -23,4 +24,5 @@ int main()
         else
             printf("NULL\n");
     }
+    free(str);
 }
